@@ -15,10 +15,10 @@ func main() {
 	fmt.Println("Euro to Ruble: ", eurToRub)
 }
 
-func getUserInput() (float64, float64, float64) {
+func getUserInput() (float64, string, string) {
 	var amountMoney float64
-	var fromCurrency float64
-	var toCurrency float64
+	var fromCurrency string
+	var toCurrency string
 
 	fmt.Print("Введите количество денег: ")
 	fmt.Scan(&amountMoney)
