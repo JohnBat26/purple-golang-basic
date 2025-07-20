@@ -25,6 +25,6 @@ func getUserInput() (float64, float64) {
 	return usdToEur, usdToRub
 }
 
-func calculate(amount float64, fromCurrency float64, toCurrency float64) {
+func calculate(amount float64, fromCurrency string, toCurrency string) {
 
 }
