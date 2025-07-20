@@ -5,9 +5,26 @@ import (
 )
 
 func main() {
-	const usdToEur = 0.85
-	const usdToRub = 78.5
-	const eurToRub = usdToRub / usdToEur
+	fmt.Println("__ Конвертер валют __")
+
+	usdToRub, usdToEur := getUserInput()
+	eurToRub := usdToRub / usdToEur
 
 	fmt.Println("Euro to Ruble: ", eurToRub)
+}
+
+func getUserInput() (float64, float64) {
+	var usdToEur float64 = 0.85
+	var usdToRub float64 = 78.5
+
+	fmt.Print("Введите коэффициент преобразования доллара в евро: ")
+	fmt.Scan(&usdToEur)
+	fmt.Print("Введите коэффициент преобразования долларав рубль: ")
+	fmt.Scan(&usdToRub)
+
+	return usdToEur, usdToRub
+}
+
+func calculate(number float64, originCurrency float64, targetCurrency float64) {
+
 }
