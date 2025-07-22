@@ -9,6 +9,7 @@ import (
 
 func main() {
 	fmt.Println("__ Калькулятор по списку __")
+
 	operation := scanOperation()
 	numbers := scanNumbers()
 	calculate(operation, numbers)
@@ -27,7 +28,9 @@ func calculate(operation string, numbers []float64) {
 
 func scanOperation() string {
 	fmt.Println("Введите одну из операций AVG -> среднее, SUM -> сумма, MED -> медиана:")
+
 	var operation string
+
 	for {
 		_, err := fmt.Scan(&operation)
 		if err != nil {
@@ -41,8 +44,10 @@ func scanOperation() string {
 			fmt.Println("Введена некорректная операция, попробуйте ещё раз")
 			continue
 		}
+
 		break
 	}
+
 	return operation
 }
 
@@ -50,6 +55,7 @@ func scanNumbers() []float64 {
 	fmt.Println("Введите список чисел разделенных запятыми:")
 
 	var numbersFromUser string
+
 	fmt.Scan(&numbersFromUser)
 
 	numbersAsString := strings.Split(numbersFromUser, ",")
@@ -59,7 +65,7 @@ func scanNumbers() []float64 {
 		f, err := strconv.ParseFloat(s, 64)
 		if err != nil {
 			fmt.Printf("Ошибка преобразования строки '%s': %v, попробуйте заново ввести строку\n", s, err)
-			scanNumbers()
+			return scanNumbers()
 		}
 
 		numbersAsFloats[i] = f
@@ -73,6 +79,7 @@ func calculateSum(numbers []float64) float64 {
 	for _, f := range numbers {
 		sum += f
 	}
+
 	return sum
 }
 
@@ -86,7 +93,9 @@ func calculateAverage(numbers []float64) float64 {
 	for _, f := range numbers {
 		sum += f
 	}
+
 	avg := sum / float64(len(numbers))
+
 	return avg
 }
 
@@ -94,6 +103,7 @@ func calculateMedian(numbers []float64) float64 {
 	sort.Float64s(numbers)
 
 	length := len(numbers)
+
 	var median float64
 
 	if length == 0 {
