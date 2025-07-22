@@ -15,9 +15,12 @@ type exchangeRates map[string]float64
 
 func main() {
 	currencies := exchangeRates{
-		"usdToEur": 0.85,
-		"usdToRub": 78.5,
-		"eurToRub": 92.3,
+		"usd-eur": 0.85,
+		"eur-usd": 1 / 0.85,
+		"usd-rub": 78.5,
+		"rub-usd": 1 / 78.5,
+		"eur-rub": 92.3,
+		"rub-eur": 1 / 92.3,
 	}
 
 	fmt.Println("__ Конвертер валют __")
@@ -27,21 +30,9 @@ func main() {
 
 		var targetAmountMoney float64
 
-		switch {
-		case fromCurrency == UsDollar && toCurrency == Euro:
-			targetAmountMoney = amountMoney * currencies["usdToEur"]
-		case fromCurrency == UsDollar && toCurrency == RussianRuble:
-			targetAmountMoney = amountMoney * currencies["usdToRub"]
-		case fromCurrency == Euro && toCurrency == UsDollar:
-			targetAmountMoney = amountMoney / currencies["usdToEur"]
-		case fromCurrency == RussianRuble && toCurrency == UsDollar:
-			targetAmountMoney = amountMoney / currencies["usdToRub"]
-		case fromCurrency == Euro && toCurrency == RussianRuble:
-			targetAmountMoney = amountMoney * currencies["eurToRub"]
-		case fromCurrency == RussianRuble && toCurrency == Euro:
-			targetAmountMoney = amountMoney / currencies["eurToRub"]
-		default:
-			fmt.Println("Незнакомая комбинация валют")
+		key := fromCurrency + "-" + toCurrency
+		if rate, exists := currencies[key]; exists {
+			targetAmountMoney = amountMoney * rate
 		}
 
 		fmt.Println("Результаты конвертации:")
