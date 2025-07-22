@@ -58,8 +58,8 @@ func scanNumbers() []float64 {
 	for i, s := range numbersAsString {
 		f, err := strconv.ParseFloat(s, 64)
 		if err != nil {
-			fmt.Printf("Ошибка преобразования строки '%s': %v\n", s, err)
-			continue
+			fmt.Printf("Ошибка преобразования строки '%s': %v, попробуйте заново ввести строку\n", s, err)
+			scanNumbers()
 		}
 
 		numbersAsFloats[i] = f
@@ -78,6 +78,11 @@ func calculateSum(numbers []float64) float64 {
 
 func calculateAverage(numbers []float64) float64 {
 	sum := 0.0
+
+	if len(numbers) == 0 {
+		return 0
+	}
+
 	for _, f := range numbers {
 		sum += f
 	}
