@@ -5,16 +5,22 @@ import (
 	"strings"
 )
 
-const UsDollar = "usd"
-const Euro = "eur"
-const RussianRuble = "rub"
+const (
+	UsDollar     = "usd"
+	Euro         = "eur"
+	RussianRuble = "rub"
+)
+
+type exchangeRates map[string]float64
 
 func main() {
-	fmt.Println("__ Конвертер валют __")
+	currencies := exchangeRates{
+		"usdToEur": 0.85,
+		"usdToRub": 78.5,
+		"eurToRub": 92.3,
+	}
 
-	var usdToEur = 0.85
-	var usdToRub = 78.5
-	var eurToRub = usdToRub / usdToEur
+	fmt.Println("__ Конвертер валют __")
 
 	for {
 		amountMoney, fromCurrency, toCurrency := getUserInput()
@@ -23,17 +29,17 @@ func main() {
 
 		switch {
 		case fromCurrency == UsDollar && toCurrency == Euro:
-			targetAmountMoney = amountMoney * usdToEur
+			targetAmountMoney = amountMoney * currencies["usdToEur"]
 		case fromCurrency == UsDollar && toCurrency == RussianRuble:
-			targetAmountMoney = amountMoney * usdToRub
+			targetAmountMoney = amountMoney * currencies["usdToRub"]
 		case fromCurrency == Euro && toCurrency == UsDollar:
-			targetAmountMoney = amountMoney / usdToEur
+			targetAmountMoney = amountMoney / currencies["usdToEur"]
 		case fromCurrency == RussianRuble && toCurrency == UsDollar:
-			targetAmountMoney = amountMoney / usdToRub
+			targetAmountMoney = amountMoney / currencies["usdToRub"]
 		case fromCurrency == Euro && toCurrency == RussianRuble:
-			targetAmountMoney = amountMoney * eurToRub
+			targetAmountMoney = amountMoney * currencies["eurToRub"]
 		case fromCurrency == RussianRuble && toCurrency == Euro:
-			targetAmountMoney = amountMoney / eurToRub
+			targetAmountMoney = amountMoney / currencies["eurToRub"]
 		default:
 			fmt.Println("Незнакомая комбинация валют")
 		}
@@ -43,26 +49,31 @@ func main() {
 		fmt.Println(result)
 
 		fmt.Println("Продолжить работу? y/n")
+
 		var answer string
+
 		fmt.Scan(&answer)
 
 		if strings.EqualFold(answer, "y") {
 			continue
-		} else {
-			break
 		}
+
+		break
 	}
 }
 
 func getUserInput() (float64, string, string) {
 	var amountMoney float64
+
 	var fromCurrency string
+
 	var toCurrency string
 
 	for {
 		message := fmt.Sprintf("Введите имя исходной валюты, например: %s, %s или %s: ", UsDollar, Euro, RussianRuble)
 		fmt.Println(message)
 		fmt.Scan(&fromCurrency)
+
 		if fromCurrency != UsDollar && fromCurrency != Euro && fromCurrency != RussianRuble {
 			message = fmt.Sprintf("Вы должны ввести одно из трех значений: %s, %s или %s, Попробуйте снова.", UsDollar, Euro, RussianRuble)
 			fmt.Println(message)
@@ -74,10 +85,12 @@ func getUserInput() (float64, string, string) {
 	for {
 		fmt.Print("Введите сумму средств для конвертации: ")
 		_, err := fmt.Scan(&amountMoney)
+
 		if err != nil {
 			fmt.Println("Некорректное число! ", err)
 			continue
 		}
+
 		break
 	}
 
