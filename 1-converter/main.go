@@ -28,12 +28,7 @@ func main() {
 	for {
 		amountMoney, fromCurrency, toCurrency := getUserInput()
 
-		var targetAmountMoney float64
-
-		key := fromCurrency + "-" + toCurrency
-		if rate, exists := currencies[key]; exists {
-			targetAmountMoney = amountMoney * rate
-		}
+		targetAmountMoney := convert(&currencies, amountMoney, fromCurrency, toCurrency)
 
 		fmt.Println("Результаты конвертации:")
 		result := fmt.Sprintf("%0.2f %s => %.2f %s", amountMoney, fromCurrency, targetAmountMoney, toCurrency)
@@ -51,6 +46,18 @@ func main() {
 
 		break
 	}
+}
+
+func convert(currencies *exchangeRates, amountMoney float64, fromCurrency string, toCurrency string) float64 {
+	var targetAmountMoney float64
+
+	key := fromCurrency + "-" + toCurrency
+
+	if rate, exists := (*currencies)[key]; exists {
+		targetAmountMoney = amountMoney * rate
+	}
+
+	return targetAmountMoney
 }
 
 func getUserInput() (float64, string, string) {
