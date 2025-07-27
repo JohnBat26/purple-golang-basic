@@ -14,5 +14,4 @@ func main() {
 	binList := bins.NewBinList(bins_list)
 
 	fmt.Println(binList)
-
 }

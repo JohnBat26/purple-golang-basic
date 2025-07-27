@@ -5,22 +5,22 @@ import (
 )
 
 type Bin struct {
-	id        string
-	name      string
-	private   bool
-	createdAt time.Time
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Private   bool      `json:"private"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type BinList struct {
-	bins [](Bin)
+	Bins [](Bin) `json:"bins"`
 }
 
 func NewBin(id, name string, private bool) Bin {
 	return Bin{
-		id:        id,
-		name:      name,
-		private:   private,
-		createdAt: time.Now(),
+		ID:        id,
+		Name:      name,
+		Private:   private,
+		CreatedAt: time.Now(),
 	}
 }
 
