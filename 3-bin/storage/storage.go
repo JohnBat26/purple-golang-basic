@@ -29,9 +29,7 @@ func (storage *Storage) Save() {
 func (storage *Storage) Load() {
 	data, err := file.ReadFile("storage.json")
 	if err != nil {
-		storage = &Storage{
-			Bins: bins.BinList{},
-		}
+		storage.Bins = bins.BinList{}
 	}
 
 	err = json.Unmarshal(data, &storage)
@@ -39,9 +37,7 @@ func (storage *Storage) Load() {
 	if err != nil {
 		color.Red("Не удалось разобрать файл data.json: ", err.Error(), "\n")
 
-		storage = &Storage{
-			Bins: bins.BinList{},
-		}
+		storage.Bins = bins.BinList{}
 	}
 }
 
