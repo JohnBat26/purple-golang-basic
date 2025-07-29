@@ -2,7 +2,7 @@ package storage
 
 import (
 	"demo/3-bin/bins"
-	"demo/3-bin/file"
+	"demo/3-bin/files"
 	"encoding/json"
 
 	"github.com/fatih/color"
@@ -19,7 +19,7 @@ func (storage *Storage) Save() {
 		color.Red("Не удалось преобразовать: ", err.Error())
 	}
 
-	file.WriteFile(data, "storage.json")
+	files.WriteFile(data, "storage.json")
 
 	if err != nil {
 		color.Red("Не удалось записать файл data.json: ", err.Error())
@@ -27,7 +27,7 @@ func (storage *Storage) Save() {
 }
 
 func (storage *Storage) Load() {
-	data, err := file.ReadFile("storage.json")
+	data, err := files.ReadFile("storage.json")
 	if err != nil {
 		storage.Bins = bins.BinList{}
 	}

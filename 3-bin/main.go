@@ -9,9 +9,9 @@ func main() {
 	bin1 := bins.NewBin("1", "bin1", false)
 	bin2 := bins.NewBin("2", "bin2", true)
 
-	bins_list := []bins.Bin{bin1, bin2}
+	binsList := []bins.Bin{bin1, bin2}
 
-	binList := bins.NewBinList(bins_list)
+	binList2 := bins.NewBinList(binsList)
 
-	fmt.Println(binList)
+	fmt.Println(binList2)
 }
