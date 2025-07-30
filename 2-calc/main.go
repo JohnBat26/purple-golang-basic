@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 )
+
+var menu = map[string]func([]float64){
+	"avg": calculateAverage,
+	"sum": calculateSum,
+	"med": calculateMedian,
+}
 
 func main() {
 	fmt.Println("__ Калькулятор по списку __")
@@ -16,14 +21,12 @@ func main() {
 }
 
 func calculate(operation string, numbers []float64) {
-	switch operation {
-	case "avg":
-		fmt.Println("Среднее значение элементов равно: ", calculateAverage(numbers))
-	case "sum":
-		fmt.Println("Сумма элементов равна: ", calculateSum(numbers))
-	case "med":
-		fmt.Println("Медиана элементов равна: ", calculateMedian(numbers))
+	menuFunc := menu[operation]
+	if menuFunc == nil {
+		return
 	}
+
+	menuFunc(numbers)
 }
 
 func scanOperation() string {
@@ -74,20 +77,20 @@ func scanNumbers() []float64 {
 	return numbersAsFloats
 }
 
-func calculateSum(numbers []float64) float64 {
+func calculateSum(numbers []float64) {
 	sum := 0.0
 	for _, f := range numbers {
 		sum += f
 	}
 
-	return sum
+	fmt.Println("Сумма элементов равна: ", sum)
 }
 
-func calculateAverage(numbers []float64) float64 {
+func calculateAverage(numbers []float64) {
 	sum := 0.0
 
 	if len(numbers) == 0 {
-		return 0
+		return
 	}
 
 	for _, f := range numbers {
@@ -96,18 +99,17 @@ func calculateAverage(numbers []float64) float64 {
 
 	avg := sum / float64(len(numbers))
 
-	return avg
+	fmt.Println("Среднее значение элементов равно: ", avg)
 }
 
-func calculateMedian(numbers []float64) float64 {
-	sort.Float64s(numbers)
+func calculateMedian(numbers []float64) {
 
 	length := len(numbers)
 
 	var median float64
 
 	if length == 0 {
-		return 0
+		return
 	}
 
 	if length%2 == 1 {
@@ -116,5 +118,5 @@ func calculateMedian(numbers []float64) float64 {
 		median = (numbers[length/2-1] + numbers[length/2]) / 2
 	}
 
-	return median
+	fmt.Println("Медиана элементов равна: ", median)
 }
