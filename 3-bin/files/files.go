@@ -1,4 +1,4 @@
-package file
+package files
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 func ReadFile(name string) ([]byte, error) {
 	if !strings.HasSuffix(name, ".json") {
-		return nil, errors.New("Файл должен иметь расширение json")
+		return nil, errors.New(" Файл должен иметь расширение json")
 	}
 
 	data, err := os.ReadFile(name)
