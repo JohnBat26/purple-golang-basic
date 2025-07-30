@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -103,6 +104,7 @@ func calculateAverage(numbers []float64) {
 }
 
 func calculateMedian(numbers []float64) {
+	sort.Float64s(numbers)
 
 	length := len(numbers)
 
