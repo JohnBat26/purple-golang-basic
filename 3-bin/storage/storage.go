@@ -2,6 +2,7 @@ package storage
 
 import (
 	"demo/3-bin/bins"
+	"demo/3-bin/config"
 	"demo/3-bin/files"
 	"encoding/json"
 
@@ -12,22 +13,28 @@ type Storage struct {
 	Bins bins.BinList `json:"bins"`
 }
 
-func (storage *Storage) Save() {
+func NewStorage() *Storage {
+	return &Storage{
+		Bins: bins.BinList{},
+	}
+}
+
+func (storage *Storage) Save(filename string) {
 	data, err := storage.ToBytes()
 
 	if err != nil {
 		color.Red("Не удалось преобразовать: ", err.Error())
 	}
 
-	files.WriteFile(data, "storage.json")
+	files.WriteFile(data, filename)
 
 	if err != nil {
-		color.Red("Не удалось записать файл data.json: ", err.Error())
+		color.Red("Не удалось записать файл: ", err.Error())
 	}
 }
 
-func (storage *Storage) Load() {
-	data, err := files.ReadFile("storage.json")
+func (storage *Storage) Load(filename string) {
+	data, err := files.ReadFile(filename)
 	if err != nil {
 		storage.Bins = bins.BinList{}
 	}
@@ -35,10 +42,30 @@ func (storage *Storage) Load() {
 	err = json.Unmarshal(data, &storage)
 
 	if err != nil {
-		color.Red("Не удалось разобрать файл data.json: ", err.Error(), "\n")
+		color.Red("Не удалось разобрать файл: ", err.Error(), "\n")
 
 		storage.Bins = bins.BinList{}
 	}
+}
+
+func (storage *Storage) FindBinByID(id string) *bins.Bin {
+	for _, b := range storage.Bins.Bins {
+		if b.ID == id {
+			return &b
+		}
+	}
+
+	return nil
+}
+
+func (storage *Storage) DeleteBinFromStorage(bin bins.Bin, c config.Config) {
+	for i, b := range storage.Bins.Bins {
+		if b.ID == bin.ID {
+			storage.Bins.Bins = append(storage.Bins.Bins[:i], storage.Bins.Bins[i+1:]...)
+		}
+	}
+
+	storage.Save(c.StorageFilename)
 }
 
 func (storage *Storage) ToBytes() ([]byte, error) {
