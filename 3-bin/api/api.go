@@ -53,14 +53,17 @@ func (c *RealHTTPClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 type ApiService struct {
-	client  HTTPClient
-	config  *config.Config
-	storage *storage.Storage
+	client         HTTPClient
+	config         *config.Config
+	Storage        *storage.Storage
+	LatestMetadata Metadata
 }
 
 func NewService(client HTTPClient, config *config.Config, storage *storage.Storage) *ApiService {
-	return &ApiService{client: client, config: config, storage: storage}
+	return &ApiService{client: client, config: config, Storage: storage}
 }
+
+var ErrCreateFail = errors.New("CREATE_FAIL")
 
 // Функционал:
 //   - создает новый Bin
@@ -73,12 +76,12 @@ func (a *ApiService) CreateBin() (bool, error) {
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда create с параметрами file: %s, и name: %s \n", *fileName, *binName)
 
-	a.storage.Load(a.config.StorageFilename)
+	a.Storage.Load(a.config.StorageFilename)
 	dataJSON, err := files.ReadFile(*fileName)
 
 	bodyResponse, err := doRequest(a.client, "POST", a.config.StoreBaseURL, dataJSON, a.config)
 	if err != nil {
-		return false, err
+		return false, ErrCreateFail
 	}
 
 	var data ResponseData
@@ -91,7 +94,8 @@ func (a *ApiService) CreateBin() (bool, error) {
 	fmt.Println("Создание прошло успешно")
 	fmt.Println(data.Metadata)
 
-	storeMetadata(data, *binName, a.storage, a.config)
+	a.LatestMetadata = data.Metadata
+	storeMetadata(data, *binName, a.Storage, a.config)
 
 	return true, nil
 }
@@ -105,8 +109,8 @@ func (a *ApiService) UpdateBin() (bool, error) {
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда update с параметрами file: %s, и id: %s \n", *fileName, *id)
 
-	a.storage.Load(a.config.StorageFilename)
-	bin := a.storage.FindBinByID(*id)
+	a.Storage.Load(a.config.StorageFilename)
+	bin := a.Storage.FindBinByID(*id)
 
 	if bin == nil {
 		return false, errors.New("Такой bin отсутствует в локальном хранилище")
@@ -142,8 +146,8 @@ func (a *ApiService) DeleteBin() (bool, error) {
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда delete с параметром id: %s \n", *id)
 
-	a.storage.Load(a.config.StorageFilename)
-	bin := a.storage.FindBinByID(*id)
+	a.Storage.Load(a.config.StorageFilename)
+	bin := a.Storage.FindBinByID(*id)
 
 	if bin == nil {
 		return false, errors.New("Такой bin отсутствует в локальном хранилище")
@@ -163,7 +167,7 @@ func (a *ApiService) DeleteBin() (bool, error) {
 		return false, err
 	}
 
-	a.storage.DeleteBinFromStorage(*bin, a.config)
+	a.Storage.DeleteBinFromStorage(*bin, a.config)
 
 	fmt.Println("Удаление прошло успешно")
 	fmt.Println(data.Metadata)
@@ -179,9 +183,9 @@ func (a *ApiService) GetBin() (bool, error) {
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда get с параметром id: %s \n", *id)
 
-	a.storage.Load(a.config.StorageFilename)
+	a.Storage.Load(a.config.StorageFilename)
 
-	bin := a.storage.FindBinByID(*id)
+	bin := a.Storage.FindBinByID(*id)
 
 	if bin == nil {
 		return false, errors.New("Такой bin отсутствует в локальном хранилище")
@@ -214,9 +218,9 @@ func (a *ApiService) ListBins() (bool, error) {
 	cmd.Parse(os.Args[2:])
 	fmt.Println("Вызвана команда list")
 
-	a.storage.Load(a.config.StorageFilename)
+	a.Storage.Load(a.config.StorageFilename)
 
-	for _, b := range a.storage.Bins.Bins {
+	for _, b := range a.Storage.Bins.Bins {
 		fmt.Println(b)
 	}
 
