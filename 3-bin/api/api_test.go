@@ -38,7 +38,7 @@ func setupTest(command string, storageFile string, args []string) func() {
 }
 
 func TestCreateBinOK(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -67,7 +67,7 @@ func TestCreateBinOK(t *testing.T) {
 }
 
 func TestCreateBinFAIL(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -90,7 +90,7 @@ func TestCreateBinFAIL(t *testing.T) {
 }
 
 func TestUpdateBinOK(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -141,7 +141,7 @@ func TestUpdateBinOK(t *testing.T) {
 }
 
 func TestUpdateBinFAIL(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -186,8 +186,9 @@ func TestUpdateBinFAIL(t *testing.T) {
 		t.Error(err.Error())
 	}
 }
+
 func TestGetBinOK(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -213,7 +214,7 @@ func TestGetBinOK(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	cleanup = setupTest("update", storageFile, []string{"--id", service.LatestMetadata.ID})
+	cleanup = setupTest("get", storageFile, []string{"--id", service.LatestMetadata.ID})
 
 	data, err = os.ReadFile("../testdata/create_bin_ok_resp.json")
 	mockResp = &http.Response{
@@ -238,7 +239,7 @@ func TestGetBinOK(t *testing.T) {
 }
 
 func TestGetBinFAIL(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -264,7 +265,7 @@ func TestGetBinFAIL(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	cleanup = setupTest("update", storageFile, []string{"--id", "12312323123"})
+	cleanup = setupTest("get", storageFile, []string{"--id", "12312323123"})
 	defer cleanup()
 
 	data, err = os.ReadFile("../testdata/create_bin_ok_resp.json")
@@ -286,7 +287,7 @@ func TestGetBinFAIL(t *testing.T) {
 }
 
 func TestDeleteBinOK(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -312,7 +313,7 @@ func TestDeleteBinOK(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	cleanup = setupTest("update", storageFile, []string{"--id", service.LatestMetadata.ID})
+	cleanup = setupTest("delete", storageFile, []string{"--id", service.LatestMetadata.ID})
 
 	data, err = os.ReadFile("../testdata/create_bin_ok_resp.json")
 	mockResp = &http.Response{
@@ -337,7 +338,7 @@ func TestDeleteBinOK(t *testing.T) {
 }
 
 func TestDeleteBinFAIL(t *testing.T) {
-	t.Parallel()
+
 	storageFile := fmt.Sprintf("/tmp/storage_test_%d.json", rand.Int())
 	cleanup := setupTest("create", storageFile, []string{"--file", "../testdata/data.json", "--name", "my-test-bin"})
 	defer cleanup()
@@ -363,7 +364,7 @@ func TestDeleteBinFAIL(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	cleanup = setupTest("update", storageFile, []string{"--id", "12312323123"})
+	cleanup = setupTest("delete", storageFile, []string{"--id", "12312323123"})
 	defer cleanup()
 
 	data, err = os.ReadFile("../testdata/create_bin_ok_resp.json")
