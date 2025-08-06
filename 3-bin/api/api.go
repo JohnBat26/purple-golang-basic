@@ -13,6 +13,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Metadata struct {
@@ -25,21 +26,57 @@ type ResponseData struct {
 	Metadata Metadata `json:"metadata"`
 }
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type RealHTTPClient struct {
+	client *http.Client // Используем один клиент для всех запросов
+}
+
+func NewRealHTTPClient() *RealHTTPClient {
+	return &RealHTTPClient{
+		client: &http.Client{
+			Timeout: 10 * time.Second, // Добавляем таймаут
+		},
+	}
+}
+
+func (c *RealHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	resp, err := c.client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+type ApiService struct {
+	client  HTTPClient
+	config  *config.Config
+	storage *storage.Storage
+}
+
+func NewService(client HTTPClient, config *config.Config, storage *storage.Storage) *ApiService {
+	return &ApiService{client: client, config: config, storage: storage}
+}
+
 // Функционал:
 //   - создает новый Bin
 //   - получает данные из хранилища: https://api.jsonbin.io
 //   - сохраняет локально информацию о нём и имя
-func CreateBin(config *config.Config, storage *storage.Storage) (bool, error) {
+func (a *ApiService) CreateBin() (bool, error) {
 	cmd := flag.NewFlagSet("create", flag.ExitOnError)
 	fileName := cmd.String("file", "data.json", "Файл с JSON")
 	binName := cmd.String("name", "my-bin", "Имя bin")
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда create с параметрами file: %s, и name: %s \n", *fileName, *binName)
 
-	storage.Load(config.StorageFilename)
+	a.storage.Load(a.config.StorageFilename)
 	dataJSON, err := files.ReadFile(*fileName)
 
-	bodyResponse, err := doRequest("POST", config.StoreBaseURL, dataJSON, config)
+	bodyResponse, err := doRequest(a.client, "POST", a.config.StoreBaseURL, dataJSON, a.config)
 	if err != nil {
 		return false, err
 	}
@@ -54,22 +91,22 @@ func CreateBin(config *config.Config, storage *storage.Storage) (bool, error) {
 	fmt.Println("Создание прошло успешно")
 	fmt.Println(data.Metadata)
 
-	storeMetadata(data, *binName, *storage, *config)
+	storeMetadata(data, *binName, a.storage, a.config)
 
 	return true, nil
 }
 
 // Функционал:
 //   - обновляет bin из файла по id
-func UpdateBin(config *config.Config, storage *storage.Storage) (bool, error) {
+func (a *ApiService) UpdateBin() (bool, error) {
 	cmd := flag.NewFlagSet("update", flag.ExitOnError)
 	fileName := cmd.String("file", "data.json", "Файл с JSON")
 	id := cmd.String("id", "", "Идентификатор bin")
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда update с параметрами file: %s, и id: %s \n", *fileName, *id)
 
-	storage.Load(config.StorageFilename)
-	bin := storage.FindBinByID(*id)
+	a.storage.Load(a.config.StorageFilename)
+	bin := a.storage.FindBinByID(*id)
 
 	if bin == nil {
 		return false, errors.New("Такой bin отсутствует в локальном хранилище")
@@ -77,9 +114,9 @@ func UpdateBin(config *config.Config, storage *storage.Storage) (bool, error) {
 
 	dataJSON, err := files.ReadFile(*fileName)
 
-	targetURL := fmt.Sprint(config.StoreBaseURL, "/", *id)
+	targetURL := fmt.Sprint(a.config.StoreBaseURL, "/", *id)
 
-	bodyResponse, err := doRequest("PUT", targetURL, dataJSON, config)
+	bodyResponse, err := doRequest(a.client, "PUT", targetURL, dataJSON, a.config)
 	if err != nil {
 		return false, err
 	}
@@ -99,22 +136,22 @@ func UpdateBin(config *config.Config, storage *storage.Storage) (bool, error) {
 
 // Функционал:
 //   - удаляет bin по id из API хранилища: https://api.jsonbin.io и локального файла
-func DeleteBin(config *config.Config, storage *storage.Storage) (bool, error) {
+func (a *ApiService) DeleteBin() (bool, error) {
 	cmd := flag.NewFlagSet("delete", flag.ExitOnError)
 	id := cmd.String("id", "", "Идентификатор bin")
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда delete с параметром id: %s \n", *id)
 
-	storage.Load(config.StorageFilename)
-	bin := storage.FindBinByID(*id)
+	a.storage.Load(a.config.StorageFilename)
+	bin := a.storage.FindBinByID(*id)
 
 	if bin == nil {
 		return false, errors.New("Такой bin отсутствует в локальном хранилище")
 	}
 
-	targetURL := fmt.Sprint(config.StoreBaseURL, "/", *id)
+	targetURL := fmt.Sprint(a.config.StoreBaseURL, "/", *id)
 
-	bodyResponse, err := doRequest("DELETE", targetURL, []byte{}, config)
+	bodyResponse, err := doRequest(a.client, "DELETE", targetURL, []byte{}, a.config)
 	if err != nil {
 		return false, err
 	}
@@ -126,7 +163,7 @@ func DeleteBin(config *config.Config, storage *storage.Storage) (bool, error) {
 		return false, err
 	}
 
-	storage.DeleteBinFromStorage(*bin, *config)
+	a.storage.DeleteBinFromStorage(*bin, a.config)
 
 	fmt.Println("Удаление прошло успешно")
 	fmt.Println(data.Metadata)
@@ -136,23 +173,23 @@ func DeleteBin(config *config.Config, storage *storage.Storage) (bool, error) {
 
 // Функционал:
 //   - выводит в stdout bin из хранилища: https://api.jsonbin.io по его id
-func GetBin(c *config.Config, s *storage.Storage) (bool, error) {
+func (a *ApiService) GetBin() (bool, error) {
 	cmd := flag.NewFlagSet("get", flag.ExitOnError)
 	id := cmd.String("id", "", "Идентификатор bin")
 	cmd.Parse(os.Args[2:])
 	fmt.Printf("Вызвана команда get с параметром id: %s \n", *id)
 
-	s.Load(c.StorageFilename)
+	a.storage.Load(a.config.StorageFilename)
 
-	bin := s.FindBinByID(*id)
+	bin := a.storage.FindBinByID(*id)
 
 	if bin == nil {
 		return false, errors.New("Такой bin отсутствует в локальном хранилище")
 	}
 
-	targetURL := fmt.Sprint(c.StoreBaseURL, "/", *id)
+	targetURL := fmt.Sprint(a.config.StoreBaseURL, "/", *id)
 
-	bodyResponse, err := doRequest("GET", targetURL, []byte{}, c)
+	bodyResponse, err := doRequest(a.client, "GET", targetURL, []byte{}, a.config)
 	if err != nil {
 		return false, err
 	}
@@ -172,21 +209,21 @@ func GetBin(c *config.Config, s *storage.Storage) (bool, error) {
 
 // Функционал:
 //   - выводит список id и name для bin из локального файла
-func ListBins(c *config.Config, s *storage.Storage) (bool, error) {
+func (a *ApiService) ListBins() (bool, error) {
 	cmd := flag.NewFlagSet("list", flag.ExitOnError)
 	cmd.Parse(os.Args[2:])
 	fmt.Println("Вызвана команда list")
 
-	s.Load(c.StorageFilename)
+	a.storage.Load(a.config.StorageFilename)
 
-	for _, b := range s.Bins.Bins {
+	for _, b := range a.storage.Bins.Bins {
 		fmt.Println(b)
 	}
 
 	return true, nil
 }
 
-func doRequest(method string, url string, data []byte, config *config.Config) ([]byte, error) {
+func doRequest(client HTTPClient, method string, url string, data []byte, config *config.Config) ([]byte, error) {
 	req, err := http.NewRequest(method, url, bytes.NewReader(data))
 	if err != nil {
 		return nil, errors.New(err.Error())
@@ -195,7 +232,6 @@ func doRequest(method string, url string, data []byte, config *config.Config) ([
 	req.Header["X-Master-Key"] = []string{config.Key}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
 	fmt.Println(req)
 	resp, err := client.Do(req)
 
@@ -218,7 +254,7 @@ func doRequest(method string, url string, data []byte, config *config.Config) ([
 	return bodyResponse, nil
 }
 
-func storeMetadata(data ResponseData, binName string, s storage.Storage, c config.Config) {
+func storeMetadata(data ResponseData, binName string, s *storage.Storage, c *config.Config) {
 	// Сохраняем метаданные в файл
 	bin := bins.NewBin(data.Metadata.ID, binName, data.Metadata.Private)
 

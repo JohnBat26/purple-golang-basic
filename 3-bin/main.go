@@ -25,17 +25,19 @@ func main() {
 
 	s := storage.NewStorage()
 
+	apiService := api.NewService(api.NewRealHTTPClient(), c, s)
+
 	switch os.Args[1] {
 	case "--create":
-		_, err = api.CreateBin(c, s)
+		_, err = apiService.CreateBin()
 	case "--update":
-		_, err = api.UpdateBin(c, s)
+		_, err = apiService.UpdateBin()
 	case "--delete":
-		_, err = api.DeleteBin(c, s)
+		_, err = apiService.DeleteBin()
 	case "--get":
-		_, err = api.GetBin(c, s)
+		_, err = apiService.GetBin()
 	case "--list":
-		_, err = api.ListBins(c, s)
+		_, err = apiService.ListBins()
 	default:
 		fmt.Println("Необходимо использовать хотя бы один параметр: --create, --update, --delete, --get или --list")
 	}

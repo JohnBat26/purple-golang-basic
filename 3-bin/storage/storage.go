@@ -58,7 +58,7 @@ func (storage *Storage) FindBinByID(id string) *bins.Bin {
 	return nil
 }
 
-func (storage *Storage) DeleteBinFromStorage(bin bins.Bin, c config.Config) {
+func (storage *Storage) DeleteBinFromStorage(bin bins.Bin, c *config.Config) {
 	for i, b := range storage.Bins.Bins {
 		if b.ID == bin.ID {
 			storage.Bins.Bins = append(storage.Bins.Bins[:i], storage.Bins.Bins[i+1:]...)
